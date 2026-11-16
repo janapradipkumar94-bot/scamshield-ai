@@ -1,0 +1,47 @@
+{
+  "model_name": "TF-IDF + Logistic Regression Text Scam Classifier",
+  "random_seed": 42,
+  "train_samples": 98,
+  "test_samples": 33,
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1_score": 1.0,
+  "confusion_matrix": {
+    "true_negatives": 16,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "true_positives": 17
+  },
+  "classification_report": {
+    "legitimate": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 16.0
+    },
+    "scam": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 17.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 33.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 33.0
+    }
+  },
+  "classes": [
+    "legitimate",
+    "scam"
+  ]
+}
