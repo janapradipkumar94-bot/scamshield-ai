@@ -45,3 +45,4 @@ services:
           type: web
           name: scamshield-backend
           property: host
+

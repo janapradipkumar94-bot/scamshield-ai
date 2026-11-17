@@ -123,3 +123,4 @@ Once deployed, verify your deployment:
    - Run a test scan with: *"URGENT: Your bank account will be blocked within 24 hours. Click bit.ly/bank-verify"*.
    - Toggle between **Easy View** (citizen-friendly, high-contrast traffic light) and **Detailed View** (technical breakdown).
    - Test the voice speaker with multi-language synthesis (English, Hindi, Bengali).
+
