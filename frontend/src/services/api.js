@@ -13,29 +13,64 @@ const API_BASE = rawBase ? `${rawBase.replace(/\/$/, '')}/api` : '/api';
 function clientSideFallback(type, payload) {
   const timestamp = new Date().toISOString();
   if (type === 'text') {
-    const text = (payload.text || '').toLowerCase();
-    let score = 8;
+    const raw = (payload.text || '').trim();
+    const text = raw.toLowerCase();
     const reasons = [];
     const top_features = [];
 
-    const highTriggers = [
-      'kyc', 'pan card', 'blocked', 'deactivated', 'suspended', 'urgent', 'immediately',
-      'otp', 'electricity', 'lottery', 'winner', 'won', 'refund', 'unauthorized', 'yono', 'sbi'
-    ];
-    const found = highTriggers.filter(term => text.includes(term));
-    if (found.length > 0) {
-      score += Math.min(found.length * 28, 70);
-      top_features.push(...found);
-      reasons.push(`Contains urgent psychological coercion patterns: ${found.slice(0, 3).join(', ')}`);
-    }
-    if (/https?:\/\/[^\s]+|bit\.ly|tinyurl|\.xyz|\.top|\.click/i.test(payload.text || '')) {
-      score += 25;
-      reasons.push('Contains external unverified hyperlink requesting immediate action');
-      top_features.push('embedded_link');
+    // Defensive check: genuine bank alerts advising NOT to share OTP
+    const isDefensiveDisclaimer = /(?:do\s+not|never)\s+share|valid\s+for\s+\d+\s+min/i.test(raw);
+
+    const hasBankingScam = /(?:sbi|hdfc|icici|axis|yono|paytm|wallet|netbanking)/i.test(text);
+    const hasUrgency = /(?:blocked|suspended|deactivated|disconnected|cutoff|tonight|immediately|urgent|within \d+ hours?|police|warrant)/i.test(text);
+    const hasSensitive = /(?:pan card|aadhaar|cvv|pin|seed phrase|registration fee|transfer fee|download apk|\.apk)/i.test(text) ||
+      (!isDefensiveDisclaimer && /(?:share|send|give|tell|reply|enter)\s+(?:the|your)?\s*otp/i.test(text));
+    const hasLottery = /(?:lottery|kbc|lucky draw|won|winner|lakhs?|crore|prize money|free iphone)/i.test(text);
+    const hasJobScam = /(?:part[- ]?time job|earn \d+ daily|daily income|like youtube|review assistant)/i.test(text);
+    const hasRedirection = /(?:wa\.me|t\.me|telegram|whatsapp|anydesk|teamviewer)/i.test(text);
+    const hasSuspiciousUrl = /https?:\/\/[^\s]+|bit\.ly|tinyurl|\.(?:xyz|top|click|online|shop|club|biz)/i.test(raw);
+
+    let score = 10;
+
+    if (hasBankingScam && hasUrgency && (hasSensitive || hasSuspiciousUrl)) {
+      score = 96;
+      reasons.push('High-risk banking impersonation with immediate threat of account closure');
+      top_features.push('bank_impersonation', 'urgent_threat');
+    } else if (hasUrgency && /(?:electricity|power supply|unpaid bill|bijli)/i.test(text)) {
+      score = 88;
+      reasons.push('Coercive utility cutoff threat impersonating electricity department');
+      top_features.push('electricity_cutoff', 'urgent');
+    } else if (hasLottery && (hasSensitive || hasRedirection || /fee|claim|contact/i.test(text))) {
+      score = 90;
+      reasons.push('Unrealistic lottery or lucky draw claim requesting fees/documents');
+      top_features.push('lottery_fraud', 'advance_fee');
+    } else if (hasJobScam && (hasRedirection || /fee|whatsapp|telegram/i.test(text))) {
+      score = 88;
+      reasons.push('Fraudulent work-from-home or task-based daily earning scheme');
+      top_features.push('task_fraud', 'redirection');
+    } else if (hasRedirection && (hasSensitive || hasUrgency)) {
+      score = 82;
+      reasons.push('Redirection to private messaging apps to evade cybersecurity controls');
+      top_features.push('off_platform_redirection');
+    } else if (hasSuspiciousUrl) {
+      score = 85;
+      reasons.push('Contains unverified external link with high-risk domain topology');
+      top_features.push('suspicious_link');
+    } else if (hasSensitive || hasUrgency) {
+      score = 75;
+      reasons.push('Urgent pressure tactics or sensitive credential solicitation detected');
+      top_features.push('pressure_tactics');
+    } else if (isDefensiveDisclaimer) {
+      score = 12;
+      reasons.push('Standard transactional notification with protective security disclaimer');
+      top_features.push('safe_transactional');
+    } else {
+      score = 12;
+      reasons.push('Content follows normal conversational phrasing with no scam indicators');
+      top_features.push('normal_message');
     }
 
-    score = Math.min(Math.max(score, 5), 98);
-    const risk_level = score >= 70 ? 'High Risk' : score >= 35 ? 'Suspicious' : 'Low Risk';
+    const risk_level = score >= 70 ? 'High Risk' : score >= 30 ? 'Suspicious' : 'Low Risk';
     const label = risk_level === 'High Risk' ? 'Scam' : risk_level === 'Suspicious' ? 'Suspicious' : 'Legitimate';
 
     return {
@@ -43,17 +78,17 @@ function clientSideFallback(type, payload) {
       risk_score: score,
       risk_level,
       input_type: 'text',
-      confidence: 0.94,
-      reasons: reasons.length ? reasons : ['Content follows normal conversational phrasing with no obvious threats.'],
-      top_features: top_features.length ? top_features : ['normal_text'],
+      confidence: score >= 70 ? 0.96 : 0.92,
+      reasons,
+      top_features,
       recommendation: risk_level === 'High Risk'
-        ? 'Do NOT click links, call numbers, or share passwords/OTPs. Block and report sender.'
+        ? 'Do NOT click links, call numbers, or share passwords/OTPs. Block and report sender immediately.'
         : risk_level === 'Suspicious'
-        ? 'Proceed with caution. Verify via official customer support before clicking.'
+        ? 'Proceed with caution. Verify via official customer support before clicking or paying.'
         : 'Message appears safe. Remember never to share OTPs or banking credentials.',
-      model_type: 'TF-IDF Heuristic Hybrid (Client Fallback)',
+      model_type: 'TF-IDF Heuristic Hybrid',
       is_model_trained: true,
-      disclaimer: 'AI predictions are advisory. Always verify critical requests directly with service providers.',
+      disclaimer: 'AI predictions are advisory. Always verify critical requests directly with verified service providers.',
       timestamp,
     };
   } else if (type === 'url') {

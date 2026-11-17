@@ -8,7 +8,7 @@ import os
 import json
 import joblib
 from typing import Dict, Any, List
-from .feature_extraction import extract_text_indicators
+from .feature_extraction import extract_text_indicators, extract_url_features
 
 # Default model path
 DEFAULT_MODEL_PATH = os.path.join(
@@ -72,10 +72,33 @@ class ScamTextClassifier:
         heuristics = extract_text_indicators(text)
         reasons: List[str] = list(heuristics["indicators"])
         signals = heuristics["signals"]
+        urls = heuristics["urls"]
 
         # If pipeline not loaded, fail-safe rule-based fallback with disclosure
         if not self.pipeline:
             return self._heuristic_fallback(text, heuristics)
+
+        # Inspect embedded URLs with static URL feature extractor
+        max_url_risk = 0
+        for u in urls[:3]:
+            try:
+                u_feat = extract_url_features(u)
+                u_score = 10
+                if u_feat["is_ip"]:
+                    u_score += 45
+                if u_feat["has_suspicious_tld"]:
+                    u_score += 40
+                if u_feat["detected_brands"]:
+                    u_score += 45
+                if u_feat["matched_keywords"]:
+                    u_score += min(35, len(u_feat["matched_keywords"]) * 15)
+                if u_score > max_url_risk:
+                    max_url_risk = u_score
+                for u_reason in u_feat["reasons"][:2]:
+                    if u_reason not in reasons:
+                        reasons.append(f"Embedded link: {u_reason}")
+            except Exception:
+                pass
 
         # ML Prediction
         try:
@@ -85,20 +108,54 @@ class ScamTextClassifier:
         except Exception as e:
             return self._heuristic_fallback(text, heuristics, error_msg=str(e))
 
-        # Base score from probability (0 to 100)
-        base_score = int(round(scam_prob * 100))
+        # Calibrated Base Score from Probability:
+        # Standard uncalibrated logistic probabilities on text cluster around 0.35 - 0.70.
+        # Calibrate around the 0.50 decision boundary:
+        if scam_prob < 0.50:
+            # Benign spectrum: map [0.0, 0.50) into [5, 25]
+            calibrated_score = int(5 + (scam_prob / 0.50) * 20)
+        else:
+            # Malicious spectrum: map [0.50, 1.0] into [45, 85]
+            calibrated_score = int(45 + ((scam_prob - 0.50) / 0.50) * 40)
 
-        # Signal adjustments: if strong critical signals (e.g. OTP request + urgent payment),
-        # calibrate score to prevent false negatives
-        critical_count = signals["sensitive_request"] + signals["urgency"]
-        if critical_count >= 2 and base_score < 70:
-            base_score = min(88, base_score + 25)
-            if "Combination of critical urgency and credential/OTP requests detected" not in reasons:
-                reasons.append("Combination of high urgency and credential/OTP requests detected")
+        total_signals = sum(signals.values())
+
+        # If zero threat indicators, zero suspicious links, and zero urgency: enforce strict benign ceiling
+        if total_signals == 0 and not urls and max_url_risk == 0:
+            final_score = min(15, calibrated_score)
+        else:
+            final_score = calibrated_score
+
+            # Elevate score for critical cybersecurity signals:
+            # 1. Embedded Phishing Link
+            if max_url_risk >= 70:
+                final_score = max(final_score, int(max_url_risk * 0.96))
+            elif max_url_risk >= 35:
+                final_score = max(final_score, final_score + 25)
+
+            # 2. Banking / KYC / Account cutoff urgency
+            if signals["urgency"] > 0 and signals["sensitive_request"] > 0:
+                final_score = max(final_score, 94)
+            elif signals["urgency"] > 0:
+                final_score = max(final_score, 85)
+            elif signals["sensitive_request"] > 0:
+                final_score = max(final_score, 82)
+
+            # 3. Lottery / Lucky Draw / Job Task Fraud
+            if signals["unrealistic_reward"] > 0 and (signals["contact_redirection"] > 0 or signals["sensitive_request"] > 0 or "kbc" in text.lower() or "lottery" in text.lower() or "job" in text.lower()):
+                final_score = max(final_score, 88)
+            elif signals["unrealistic_reward"] > 0:
+                final_score = max(final_score, 78)
+
+            # 4. Off-platform redirection (WhatsApp / Telegram / Remote access)
+            if signals["contact_redirection"] > 0:
+                final_score = max(final_score, 80)
+
+        # Standardized Risk Range [5 - 99]
+        risk_score = max(5, min(99, final_score))
 
         # Classification mapping:
         # 0-29: Low Risk, 30-69: Suspicious, 70-100: High Risk
-        risk_score = max(0, min(100, base_score))
         if risk_score >= 70:
             risk_level = "High Risk"
             label = "scam"

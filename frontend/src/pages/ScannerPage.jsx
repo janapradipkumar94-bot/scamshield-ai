@@ -636,6 +636,36 @@ export default function ScannerPage() {
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-white capitalize">
                     {scanResult.label.replace('_', ' ')} {t('assessment')}
                   </h3>
+
+                  {/* Visual Scam Rating Spectrum Meter */}
+                  <div className="pt-1.5 w-full max-w-sm sm:max-w-md">
+                    <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                      <span className="text-slate-300">Scam Threat Rating:</span>
+                      <span className={scanResult.risk_score >= 70 ? 'text-rose-400 font-extrabold text-xs sm:text-sm' : scanResult.risk_score >= 30 ? 'text-amber-400 font-extrabold text-xs sm:text-sm' : 'text-emerald-400 font-extrabold text-xs sm:text-sm'}>
+                        {scanResult.risk_score}% {scanResult.risk_level === 'High Risk' ? '— Dangerous Scam' : scanResult.risk_level === 'Suspicious' ? '— Suspicious' : '— Safe / Low Risk'}
+                      </span>
+                    </div>
+                    {/* Multi-segment Meter */}
+                    <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-white/15 relative">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${
+                          scanResult.risk_score >= 70
+                            ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-red-600 shadow-md shadow-rose-500/50'
+                            : scanResult.risk_score >= 30
+                            ? 'bg-gradient-to-r from-emerald-500 to-amber-500 shadow-md shadow-amber-500/50'
+                            : 'bg-gradient-to-r from-teal-500 to-emerald-500 shadow-md shadow-emerald-500/50'
+                        }`}
+                        style={{ width: `${Math.max(6, scanResult.risk_score)}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1 font-semibold">
+                      <span className="text-emerald-400">0% Safe</span>
+                      <span className="text-amber-400">30% Warning</span>
+                      <span className="text-rose-400">70% Critical Scam</span>
+                      <span className="text-red-500 font-bold">100%</span>
+                    </div>
+                  </div>
+
                   <p className="text-xs text-slate-400">
                     Model: <span className="text-slate-300 font-mono font-medium">{scanResult.model_type}</span>
                   </p>

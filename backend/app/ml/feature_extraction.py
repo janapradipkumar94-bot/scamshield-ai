@@ -23,32 +23,38 @@ TARGET_BRANDS = [
 
 # High-risk urgency and coercion phrases
 URGENCY_PATTERNS = [
-    r"\bimmediately\b", r"\burgent\b", r"\bwithin \d+ hours?\b",
+    r"\bimmediately\b", r"\burgent\b", r"\bwithin \d+ hours?\b", r"\bwithin \d+ minutes?\b",
     r"\b(?:act|expire[sd]?|suspended|blocked|disconnect(?:ed)?|cutoff)\s+today\b",
     r"\btoday\s+only\b", r"\btonight\s+by\b", r"\baccount (?:will be )?blocked\b",
     r"\baccount (?:will be )?suspended\b", r"\bdeactivated\b", r"\bdisconnected\b",
     r"\bpolice arrest\b", r"\bwarrant\b", r"\blawsuit\b", r"\bpower cutoff\b",
-    r"\bterminated\b", r"\bcourt notice\b"
+    r"\bterminated\b", r"\bcourt notice\b", r"\belectricity officer\b", r"\bpower supply\b",
+    r"\bunpaid bill\b", r"\baction required\b", r"\blight bill\b", r"\bbijli\b"
 ]
 
-# Sensitive credentials and financial triggers
+# Sensitive credentials and financial harvesting triggers
 SENSITIVE_PATTERNS = [
-    r"\botp\b", r"\bone-time password\b", r"\bpin\b", r"\bcvv\b", r"\bpassword\b",
-    r"\bseed phrase\b", r"\bdebit card\b", r"\bcredit card\b", r"\bpan card\b",
-    r"\baadhaar\b", r"\bnetbanking\b", r"\bkyc update\b", r"\bshare your code\b"
+    r"\b(?:share|send|give|tell|reply\s+with|submit|enter|update|verify|confirm)\s+(?:the\s+|your\s+|me\s+)?(?:otp|pin|password|cvv|code)\b",
+    r"\botp\s+(?:to\s+cancel|for\s+verification|to\s+receive|to\s+claim)\b",
+    r"\bshare\s+your\s+code\b",
+    r"\bseed\s+phrase\b", r"\bcvv\b",
+    r"\bpan\s+card\b", r"\baadhaar\b", r"\bkyc\s+update\b", r"\bvideo\s+kyc\b",
+    r"\btransfer\s+fee\b", r"\bregistration\s+fee\b", r"\bprocessing\s+fee\b", r"\bsecurity\s+deposit\b",
+    r"\bdownload\s+apk\b", r"\b\.apk\b", r"\binstall\s+app\b", r"\bwire\s+money\b"
 ]
 
 # Unrealistic monetary claims / prize / job offers
 REWARD_PATTERNS = [
     r"\bwon\b", r"\blottery\b", r"\bcrore\b", r"\blakhs?\b", r"\bguaranteed (?:returns?|profit)\b",
-    r"\bfree iphone\b", r"\bpart time job\b", r"\bearn \d+ daily\b", r"\blike youtube\b",
-    r"\b300% profit\b", r"\bdouble your\b", r"\bcashback\b", r"\bgift voucher\b"
+    r"\bfree iphone\b", r"\bpart time job\b", r"\bearn \d+ daily\b", r"\bearn money\b", r"\bdaily income\b",
+    r"\blike youtube\b", r"\b300% profit\b", r"\bdouble your\b", r"\bcashback\b", r"\bgift voucher\b",
+    r"\blucky draw\b", r"\bkbc\b", r"\bcongratulations\b", r"\bshortlisted\b", r"\bwork from home\b"
 ]
 
 # Contact redirection signals
 CONTACT_PATTERNS = [
     r"wa\.me\/\d+", r"t\.me\/[a-zA-Z0-9_]+", r"telegram:?\s*@\w+", r"whatsapp:?\s*[\+\d\s\-]{8,}",
-    r"anydesk", r"teamviewer"
+    r"anydesk", r"teamviewer", r"\bcontact on whatsapp\b", r"\bjoin telegram\b"
 ]
 
 
@@ -87,11 +93,17 @@ def extract_text_indicators(text: str) -> Dict[str, Any]:
     if category_signals["urgency"] > 0:
         indicators.append("Urgent or coercive pressure tactics detected (threat of suspension, cutoff, or arrest)")
 
+    # Check for authentic transactional safety disclaimers (e.g. "Do not share OTP with anyone")
+    has_defensive_disclaimer = bool(re.search(r"\b(?:do\s+not|never)\s+share\b|\bvalid\s+for\s+\d+\s+min", lower))
+
     # Sensitive info check
     for pattern in SENSITIVE_PATTERNS:
         if re.search(pattern, lower):
             category_signals["sensitive_request"] += 1
-    if category_signals["sensitive_request"] > 0:
+
+    if has_defensive_disclaimer and category_signals["sensitive_request"] == 0:
+        indicators.append("Includes standard transactional safety disclaimer ('Never share OTP with anyone')")
+    elif category_signals["sensitive_request"] > 0:
         indicators.append("Request for confidential information (OTP, PIN, CVV, or identity documents)")
 
     # Reward / job check
