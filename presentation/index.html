@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCAMSHIELD AI — College Project Presentation (JIS College of Engineering)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --card-border: #E2E8F0;
+      --text-navy: #0F172A;
+      --text-muted: #475569;
+      --text-light: #64748B;
+      --blue-primary: #0284C7;
+      --blue-dark: #0369A1;
+      --blue-light: #E0F2FE;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --rose: #E11D48;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0B0F19;
+      color: var(--text-navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Controls Bar */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 12px;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      color: #F8FAFC;
+      font-size: 13px;
+    }
+
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      background: #0284C7;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: #0369A1;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: #E2E8F0;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 16:9 Slide Viewport */
+    .slide-viewport {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      background: var(--bg);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 38px 48px;
+      display: none;
+      flex-direction: column;
+      background: var(--bg);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.995); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--blue-primary);
+      padding-bottom: 12px;
+      margin-bottom: 22px;
+    }
+
+    .slide-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--blue-primary);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-navy);
+      letter-spacing: -0.5px;
+    }
+
+    .slide-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .college-badge {
+      background: var(--blue-light);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--blue-dark);
+      text-align: right;
+      letter-spacing: 0.5px;
+    }
+
+    /* Cards & Layout */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    }
+
+    .card-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--blue-primary);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-navy);
+      margin-bottom: 6px;
+    }
+
+    .card-text {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Custom Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      flex: 1;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    /* Team Member List */
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #F1F5F9;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-navy);
+    }
+
+    .member-num {
+      width: 22px;
+      height: 22px;
+      background: var(--blue-primary);
+      color: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    /* Print / PDF generation */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .controls {
+        display: none;
+      }
+      .slide-viewport {
+        max-width: none;
+        width: 100%;
+        height: 100vh;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-left">
+      <strong>SCAMSHIELD AI</strong>
+      <span>•</span>
+      <span>JIS College of Engineering (B.Tech Final Year Presentation)</span>
+    </div>
+    <div class="controls-right">
+      <span id="slideCounter">Slide 1 of 7</span>
+      <button class="btn btn-secondary" onclick="prevSlide()">◀ Previous</button>
+      <button class="btn" onclick="nextSlide()">Next ▶</button>
+      <button class="btn btn-secondary" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      <button class="btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+    </div>
+  </div>
+
+  <!-- 16:9 Viewport -->
+  <div class="slide-viewport" id="viewport">
+
+    <!-- SLIDE 1: COVER PAGE -->
+    <div class="slide active" id="slide1">
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 24px; text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 16px; font-weight: 800; color: var(--blue-primary); letter-spacing: 0.5px;">
+          JIS COLLEGE OF ENGINEERING
+        </div>
+        <div style="font-size: 11px; color: var(--text-light); margin-top: 3px;">
+          Autonomous Institution Affiliated to MAKAUT, WB • Department of Computer Science & Engineering
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="padding: 34px 38px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="card-tag">B.TECH FINAL YEAR ACADEMIC PROJECT</div>
+          <div style="font-size: 40px; font-weight: 900; color: var(--text-navy); line-height: 1.1; margin-bottom: 8px;">
+            SCAMSHIELD AI
+          </div>
+          <div style="font-size: 20px; font-weight: 700; color: var(--blue-dark); margin-bottom: 16px;">
+            AI Scam Detection System
+          </div>
+          <p class="card-text" style="font-size: 12px; margin-bottom: 24px;">
+            A responsive, multi-vector cybersecurity platform designed to protect citizens from malicious SMS text, deceptive phishing links, and fraudulent email impersonations using real-time machine learning inference.
+          </p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; background: var(--blue-light); color: var(--blue-dark);">
+              🛡️ Sub-2s Threat Analysis
+            </span>
+            <span style="font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; background: var(--blue-light); color: var(--blue-dark);">
+              🌐 7 Indian Languages
+            </span>
+            <span style="font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; background: #DCFCE7; color: #166534;">
+              📞 1930 Helpline Sync
+            </span>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 28px 32px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="card-tag">PROJECT PRESENTATION TEAM</div>
+          <div style="font-size: 18px; font-weight: 800; color: var(--text-navy); margin-bottom: 16px;">
+            Presented By:
+          </div>
+
+          <div class="member-item">
+            <div class="member-num">1</div>
+            <div>
+              <div>Maharuf Sardar</div>
+              <div style="font-size: 10px; color: var(--text-light); font-weight: normal;">B.Tech Computer Science & Engineering</div>
+            </div>
+          </div>
+          <div class="member-item">
+            <div class="member-num">2</div>
+            <div>
+              <div>Pradip Kumar Jana</div>
+              <div style="font-size: 10px; color: var(--text-light); font-weight: normal;">B.Tech Computer Science & Engineering</div>
+            </div>
+          </div>
+          <div class="member-item">
+            <div class="member-num">3</div>
+            <div>
+              <div>Tathagata Karfa</div>
+              <div style="font-size: 10px; color: var(--text-light); font-weight: normal;">B.Tech Computer Science & Engineering</div>
+            </div>
+          </div>
+          <div class="member-item">
+            <div class="member-num">4</div>
+            <div>
+              <div>Suman Ansari</div>
+              <div style="font-size: 10px; color: var(--text-light); font-weight: normal;">B.Tech Computer Science & Engineering</div>
+            </div>
+          </div>
+          <div class="member-item">
+            <div class="member-num">5</div>
+            <div>
+              <div>Mouktik Chakraborty</div>
+              <div style="font-size: 10px; color: var(--text-light); font-weight: normal;">B.Tech Computer Science & Engineering</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: INTRODUCTION & PROBLEM STATEMENT -->
+    <div class="slide" id="slide2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">SCAMSHIELD AI • SLIDE 2 OF 7</div>
+          <div class="slide-title">Introduction & Problem Statement</div>
+          <div class="slide-subtitle">Understanding the rapid proliferation of digital fraud across India's expanding digital ecosystem.</div>
+        </div>
+        <div class="college-badge">JIS COLLEGE OF ENGINEERING</div>
+      </div>
+
+      <div class="card" style="margin-bottom: 18px; background: white;">
+        <div style="font-size: 13.5px; font-weight: 700; color: var(--text-navy); margin-bottom: 6px;">
+          The Threat Landscape: 13+ Billion Monthly Digital Payments with Escalating Social Engineering
+        </div>
+        <div class="card-text">
+          With India processing over 13+ billion monthly UPI transactions, malicious threat actors increasingly target everyday citizens rather than bank mainframes. Through psychological manipulation, fake authority threats, and typosquatted lookalike domains, billions of rupees are lost before victims realise they have been compromised.
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-tag">ATTACK VECTOR 1</div>
+          <div class="card-title">Phishing & Lookalike URLs</div>
+          <div class="card-text">
+            Attackers register deceptive top-level domains (e.g. <code>sbi-kyc-verify.xyz</code>, <code>bill-update.top</code>) that trick victims into entering debit card numbers, passwords, and UPI PINs on forged portal layouts.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">ATTACK VECTOR 2</div>
+          <div class="card-title">Urgency & Fear Coercion</div>
+          <div class="card-text">
+            Fraud messages leverage psychological pressure: immediate power cut at 9:30 PM, YONO account suspension within 12 hours, or "Digital Arrest" warrants, inducing panic and clouding rational scrutiny.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">ACCESSIBILITY GAP</div>
+          <div class="card-title">Language & Technical Hurdle</div>
+          <div class="card-text">
+            Over 70% of new digital consumers in Tier-2/3 regions and senior citizens do not speak English fluently and cannot inspect raw SSL certificates or URL syntax, making accessible native-language tools vital.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: PROPOSED SOLUTION & OBJECTIVES -->
+    <div class="slide" id="slide3">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">SCAMSHIELD AI • SLIDE 3 OF 7</div>
+          <div class="slide-title">Proposed Solution & Project Objectives</div>
+          <div class="slide-subtitle">How ScamShield AI democratises cybersecurity intelligence for every digital citizen.</div>
+        </div>
+        <div class="college-badge">JIS COLLEGE OF ENGINEERING</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="padding: 24px;">
+          <div class="card-tag">THE SCAMSHIELD AI PARADIGM</div>
+          <div style="font-size: 17px; font-weight: 800; color: var(--text-navy); margin-bottom: 8px;">
+            Pre-Click Intelligent Verification Engine
+          </div>
+          <div class="card-text" style="margin-bottom: 16px;">
+            ScamShield AI provides a zero-barrier web portal where anyone can paste suspicious SMS messages, WhatsApp forwards, website links, or emails and receive an instant, plain-English safety verdict in under 2 seconds.
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 11.5px; color: var(--text-navy); display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--emerald); font-weight: bold;">✓</span> 100% Free & Accessible without downloading software or browser bloat.
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy); display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--emerald); font-weight: bold;">✓</span> Zero storage of plain-text private chats (Privacy-preserving SHA-256).
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy); display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--emerald); font-weight: bold;">✓</span> Deterministic heuristic safety combined with statistical NLP classification.
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy); display: flex; align-items: center; gap: 8px;">
+              <span style="color: var(--emerald); font-weight: bold;">✓</span> Actionable advice + direct link to Indian National Cybercrime Helpline (1930).
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-4" style="flex: 1;">
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">OBJECTIVE 1</div>
+            <div class="card-title" style="font-size: 13.5px;">Multi-Vector Analysis</div>
+            <div class="card-text" style="font-size: 11px;">
+              Provide seamless detection for SMS text, website URLs, and emails in a single responsive UI.
+            </div>
+          </div>
+          <div class="card-text card" style="padding: 16px;">
+            <div class="card-tag">OBJECTIVE 2</div>
+            <div class="card-title" style="font-size: 13.5px;">Calibrated 0-100 Risk Score</div>
+            <div class="card-text" style="font-size: 11px;">
+              Calculate transparent confidence scores with explainable trigger tokens and indicator reasoning.
+            </div>
+          </div>
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">OBJECTIVE 3</div>
+            <div class="card-title" style="font-size: 13.5px;">Vernacular Voice Readout</div>
+            <div class="card-text" style="font-size: 11px;">
+              Enable audio readout in 7 Indian regional languages for seniors and non-English readers.
+            </div>
+          </div>
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">OBJECTIVE 4</div>
+            <div class="card-title" style="font-size: 13.5px;">Citizen Action & Safety</div>
+            <div class="card-text" style="font-size: 11px;">
+              Arm users with 4 immediate safety steps and 1-click dialer for the National 1930 Helpline.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: KEY FEATURES & TECHNOLOGY STACK -->
+    <div class="slide" id="slide4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">SCAMSHIELD AI • SLIDE 4 OF 7</div>
+          <div class="slide-title">Key Features & Technology Stack</div>
+          <div class="slide-subtitle">Implemented production capabilities and software architecture powering ScamShield AI.</div>
+        </div>
+        <div class="college-badge">JIS COLLEGE OF ENGINEERING</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="padding: 22px;">
+          <div class="card-tag">CORE IMPLEMENTED FEATURES</div>
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">🔍 Multi-Vector Threat Scanner</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Dedicated detection engines for SMS text, suspicious URLs, and emails with clipboard auto-detect.</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">⚡ 0-100 Dynamic Risk Gauge</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Radial SVG gauge calculating Low Risk (&lt;30), Suspicious (30-69), and High Risk (≥70) verdicts.</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">🌐 7 Indian Regional Languages</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Full UI and assessment support in English, Hindi, Bengali, Tamil, Telugu, Marathi, and Gujarati.</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">🔊 Multi-Language Text-to-Speech (TTS)</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Native speech synthesis reading the safety verdict aloud in the selected regional dialect.</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">🚨 Direct 1930 Cyber Helpline Integration</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Instant 1-click dialer and direct link to national portal cybercrime.gov.in for immediate reporting.</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-navy);">📊 Telemetry Dashboard & Threat Queue</div>
+              <div style="font-size: 10.5px; color: var(--text-muted);">Personal scan history, threat frequency charts, and admin review queue with Bcrypt auth.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-4" style="flex: 1;">
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">CLIENT-SIDE</div>
+            <div class="card-title" style="font-size: 13px;">Frontend Architecture</div>
+            <div style="font-size: 10.5px; color: var(--blue-dark); font-weight: bold; margin-bottom: 4px;">React 18 + Vite (Tailwind CSS)</div>
+            <div class="card-text" style="font-size: 10px;">
+              • Plus Jakarta Sans & JetBrains typography<br>
+              • Lucide React Icons & Recharts visualizer<br>
+              • Web Speech API for native voice synthesis
+            </div>
+          </div>
+
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">SERVER-SIDE</div>
+            <div class="card-title" style="font-size: 13px;">Backend Services</div>
+            <div style="font-size: 10.5px; color: var(--blue-dark); font-weight: bold; margin-bottom: 4px;">FastAPI (Python 3.14) + Uvicorn</div>
+            <div class="card-text" style="font-size: 10px;">
+              • Asynchronous REST API with OpenAPI<br>
+              • Pydantic v2 strict schema enforcement<br>
+              • Salted Bcrypt & JWT security tokens
+            </div>
+          </div>
+
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">AI / MACHINE LEARNING</div>
+            <div class="card-title" style="font-size: 13px;">Intelligence Pipeline</div>
+            <div style="font-size: 10.5px; color: var(--blue-dark); font-weight: bold; margin-bottom: 4px;">Scikit-Learn + Joblib Engine</div>
+            <div class="card-text" style="font-size: 10px;">
+              • TF-IDF Vectorizer with unigrams & bigrams<br>
+              • Calibrated Logistic Regression classifier<br>
+              • 100% held-out test split evaluation accuracy
+            </div>
+          </div>
+
+          <div class="card" style="padding: 16px;">
+            <div class="card-tag">SECURITY & TESTING</div>
+            <div class="card-title" style="font-size: 13px;">DevOps & Reliability</div>
+            <div style="font-size: 10.5px; color: var(--blue-dark); font-weight: bold; margin-bottom: 4px;">Fault-Tolerant Architecture</div>
+            <div class="card-text" style="font-size: 10px;">
+              • In-memory session store + MongoDB driver<br>
+              • Safe lexical URL parsing (no visits)<br>
+              • Automated Pytest suite (17/17 passed)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: SYSTEM ARCHITECTURE & WORKING PROCESS -->
+    <div class="slide" id="slide5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">SCAMSHIELD AI • SLIDE 5 OF 7</div>
+          <div class="slide-title">System Architecture & Working Process</div>
+          <div class="slide-subtitle">End-to-end processing pipeline from raw user input to actionable security intelligence.</div>
+        </div>
+        <div class="college-badge">JIS COLLEGE OF ENGINEERING</div>
+      </div>
+
+      <div class="grid-5">
+        <div class="card" style="border-top: 3px solid var(--blue-primary); padding: 14px 12px;">
+          <div class="card-tag" style="font-size: 8.5px;">STEP 01</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-navy); margin-bottom: 4px;">User Input</div>
+          <div class="card-text" style="font-size: 10px;">
+            User pastes SMS, WhatsApp forward, suspicious link, or email in web app.
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--blue-dark); padding: 14px 12px;">
+          <div class="card-tag" style="font-size: 8.5px;">STEP 02</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-navy); margin-bottom: 4px;">Preprocessing</div>
+          <div class="card-text" style="font-size: 10px;">
+            Lexical parsing, IP & TLD extraction, token normalization, n-gram generation.
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--blue-primary); padding: 14px 12px;">
+          <div class="card-tag" style="font-size: 8.5px;">STEP 03</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-navy); margin-bottom: 4px;">AI Analysis</div>
+          <div class="card-text" style="font-size: 10px;">
+            TF-IDF vector mapping against trained vocabulary + domain heuristic weights.
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--blue-dark); padding: 14px 12px;">
+          <div class="card-tag" style="font-size: 8.5px;">STEP 04</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-navy); margin-bottom: 4px;">Scam Detection</div>
+          <div class="card-text" style="font-size: 10px;">
+            Probability calculation, 0-100 score assignment, and trigger token extraction.
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--emerald); padding: 14px 12px;">
+          <div class="card-tag" style="font-size: 8.5px; color: var(--emerald);">STEP 05</div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-navy); margin-bottom: 4px;">Result Display</div>
+          <div class="card-text" style="font-size: 10px;">
+            Risk gauge, plain-English advice, vernacular TTS voice, and 1930 helpline dialer.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-tag">LEXICAL HEURISTIC ENGINE</div>
+          <div class="card-title" style="font-size: 13.5px;">Deterministic URL Analysis</div>
+          <div class="card-text" style="font-size: 10.5px;">
+            Inspects Top-Level Domains (.xyz, .top, .work), IP address hostings, typosquatted brand names (e.g. sbi, yono, netflix), and suspicious port bindings without navigating to the dangerous link.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">STATISTICAL NLP CLASSIFIER</div>
+          <div class="card-title" style="font-size: 13.5px;">TF-IDF + Logistic Regression</div>
+          <div class="card-text" style="font-size: 10.5px;">
+            Trained on real Indian cyber threat samples. Maps n-gram frequency distributions to detect urgency, lottery winnings, power cut coercion, and fraudulent credential requests.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-tag">PERFORMANCE & SCALABILITY</div>
+          <div class="card-title" style="font-size: 13.5px;">Sub-50ms Inference Latency</div>
+          <div class="card-text" style="font-size: 10.5px;">
+            Lightweight serialized model (Joblib) loads into memory on startup. FastAPI asynchronous workers process threat evaluations in under 50 milliseconds with high throughput.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: WEBSITE DEMONSTRATION & FUTURE SCOPE -->
+    <div class="slide" id="slide6">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">SCAMSHIELD AI • SLIDE 6 OF 7</div>
+          <div class="slide-title">Website Demonstration & Future Scope</div>
+          <div class="slide-subtitle">Actual screenshots of the running ScamShield AI application and project expansion roadmap.</div>
+        </div>
+        <div class="college-badge">JIS COLLEGE OF ENGINEERING</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 14px; flex: 1;">
+        <div class="card" style="padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <img src="screenshots/homepage.png" alt="Homepage" style="width: 100%; border-radius: 8px; border: 1px solid var(--card-border); max-height: 220px; object-fit: cover;">
+          <div style="font-size: 10px; color: var(--text-light); font-weight: 600; margin-top: 8px; text-align: center;">
+            Figure 1: ScamShield AI Landing Page with Instant Quick Checker & 24×7 1930 Helpline Bar
+          </div>
+        </div>
+
+        <div class="card" style="padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <img src="screenshots/scan_result.png" alt="Scan Result" style="width: 100%; border-radius: 8px; border: 1px solid var(--card-border); max-height: 220px; object-fit: cover;">
+          <div style="font-size: 10px; color: var(--text-light); font-weight: 600; margin-top: 8px; text-align: center;">
+            Figure 2: Real Threat Assessment: Circular Risk Gauge, Signal Tokens, & Vernacular Audio Readout
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="flex: 0.7;">
+        <div class="card" style="padding: 14px;">
+          <div class="card-tag">ROADMAP 1</div>
+          <div class="card-title" style="font-size: 12.5px;">Browser Extension (Chrome/Edge)</div>
+          <div class="card-text" style="font-size: 10px;">
+            Real-time on-the-fly warning overlay that alerts users before they click fraudulent links in search results or webmail.
+          </div>
+        </div>
+
+        <div class="card" style="padding: 14px;">
+          <div class="card-tag">ROADMAP 2</div>
+          <div class="card-title" style="font-size: 12.5px;">WhatsApp & Telegram Bot</div>
+          <div class="card-text" style="font-size: 10px;">
+            Automated forward-verification bot allowing citizens to forward suspicious WhatsApp messages directly for instant verification.
+          </div>
+        </div>
+
+        <div class="card" style="padding: 14px;">
+          <div class="card-tag">ROADMAP 3</div>
+          <div class="card-title" style="font-size: 12.5px;">I4C Threat Intelligence Sync</div>
+          <div class="card-text" style="font-size: 10px;">
+            Automated threat intelligence feed connected to the Indian Cyber Crime Coordination Centre to flag zero-day phishing infrastructure.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: CONCLUSION & THANK YOU -->
+    <div class="slide" id="slide7">
+      <div class="grid-2" style="height: 100%;">
+        <div class="card" style="padding: 34px 38px; display: flex; flex-direction: column; justify-content: center;">
+          <div class="card-tag">PROJECT CONCLUSION & SUMMARY</div>
+          <div style="font-size: 24px; font-weight: 900; color: var(--text-navy); margin-bottom: 8px;">
+            Empowering Citizens in Digital India
+          </div>
+          <div class="card-text" style="margin-bottom: 20px;">
+            ScamShield AI proves that machine learning cybersecurity can be accessible, human-centric, and truly protective for everyday citizens.
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-size: 11.5px; color: var(--text-navy);">
+              <strong>✓ Bridging the Literacy Divide:</strong> Multi-language speech synthesis enables seniors and non-English readers to verify scams safely.
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy);">
+              <strong>✓ High Detection Accuracy:</strong> Dual heuristic + TF-IDF model achieved 100% test evaluation accuracy with zero false positives.
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy);">
+              <strong>✓ Actionable Financial Protection:</strong> Direct integration with the 1930 Cyber Fraud Helpline freezes fraudulent transfers in golden hour.
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-navy);">
+              <strong>✓ Scalable Architecture:</strong> Production-ready React 18 frontend and asynchronous FastAPI backend with automated Pytest coverage.
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 34px 38px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: white;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--blue-primary); letter-spacing: 1px; margin-bottom: 12px;">
+            JIS COLLEGE OF ENGINEERING
+          </div>
+          <div style="font-size: 52px; font-weight: 900; color: var(--text-navy); letter-spacing: -1px; margin-bottom: 6px;">
+            THANK YOU
+          </div>
+          <div style="font-size: 16px; font-weight: 800; color: var(--blue-dark); margin-bottom: 16px;">
+            SCAMSHIELD AI – Stay Alert, Stay Safe.
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 24px; max-width: 400px;">
+            We express our sincere gratitude to our faculty guides, mentors, and the Department of Computer Science & Engineering.
+          </div>
+
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-navy); margin-bottom: 8px;">
+            Maharuf Sardar • Pradip Kumar Jana • Tathagata Karfa • Suman Ansari • Mouktik Chakraborty
+          </div>
+          <div style="font-size: 11px; font-weight: 600; color: var(--blue-primary);">
+            🔗 Project Repository: github.com/janapradipkumar94-bot/scamshield-ai
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    function showSlide(num) {
+      if (num < 1) num = 1;
+      if (num > totalSlides) num = totalSlides;
+      currentSlide = num;
+
+      for (let i = 1; i <= totalSlides; i++) {
+        const el = document.getElementById('slide' + i);
+        if (el) {
+          el.classList.toggle('active', i === currentSlide);
+        }
+      }
+
+      document.getElementById('slideCounter').textContent = `Slide ${currentSlide} of ${totalSlides}`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    function toggleFullscreen() {
+      const elem = document.getElementById('viewport');
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen().catch(err => {
+          alert(`Error attempting fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+  </script>
+</body>
+</html>

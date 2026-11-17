@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   MessageSquare,
@@ -61,6 +61,20 @@ export default function ScannerPage() {
 
   // Modals
   const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  // Auto-fill and optional auto-scan from query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qText = params.get('text');
+    const auto = params.get('autoscan') === 'true';
+    if (qText) {
+      setTextContent(qText);
+      setActiveTab('text');
+      if (auto) {
+        api.scanText({ text: qText }).then(setScanResult).catch(() => {});
+      }
+    }
+  }, []);
 
   // Smart Clipboard Paste & Auto-Detect
   const handlePasteFromClipboard = async () => {
