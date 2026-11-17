@@ -1,0 +1,2 @@
+# ScamShield AI — Python Root Dependencies for Cloud Deployment
+-r backend/requirements.txt

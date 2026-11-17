@@ -3,7 +3,11 @@
  * Handles token management, REST calls, and error parsing.
  */
 
-const API_BASE = '/api';
+let rawBase = (import.meta.env.VITE_API_URL || '').trim();
+if (rawBase && !rawBase.startsWith('http://') && !rawBase.startsWith('https://') && !rawBase.startsWith('/')) {
+  rawBase = `https://${rawBase}`;
+}
+const API_BASE = rawBase ? `${rawBase.replace(/\/$/, '')}/api` : '/api';
 
 function getAuthHeaders() {
   const token = localStorage.getItem('scamshield_token');

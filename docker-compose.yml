@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # ScamShield AI Backend & ML Inference Engine
+  # ============================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scamshield_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - PORT=8000
+      - SECRET_KEY=scamshield-production-secret-key-32-chars-long
+      - MONGODB_URI=mongodb://mongo:27017
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      - mongo
+
+  # ============================================================
+  # Optional Dedicated MongoDB Database (Automatic In-Memory Fallback Available)
+  # ============================================================
+  mongo:
+    image: mongo:7.0
+    container_name: scamshield_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
